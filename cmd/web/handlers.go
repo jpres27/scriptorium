@@ -3,12 +3,11 @@ package main
 import (
 	"fmt"
 	"html/template"
-	"log"
 	"net/http"
 	"strconv"
 )
 
-func getHome(w http.ResponseWriter, r *http.Request) {
+func (app *application) getHome(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Server", "Go")
 
 	files := []string{
@@ -19,19 +18,17 @@ func getHome(w http.ResponseWriter, r *http.Request) {
 
 	ts, err := template.ParseFiles(files...)
 	if err != nil {
-		log.Print(err.Error())
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		app.serverError(w, r, err)
 		return
 	}
 
 	err = ts.ExecuteTemplate(w, "base", nil)
 	if err != nil {
-		log.Print(err.Error())
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		app.serverError(w, r, err)
 	}
 }
 
-func getBlogView(w http.ResponseWriter, r *http.Request) {
+func (app *application) getBlogView(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("id"))
 	if err != nil || id < 1 {
 		http.NotFound(w, r)
@@ -41,11 +38,11 @@ func getBlogView(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Display a specific blog post with ID %d...", id)
 }
 
-func getBlogCreate(w http.ResponseWriter, r *http.Request) {
+func (app *application) getBlogCreate(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Display a form for creating a new blog post..."))
 }
 
-func postBlogCreate(w http.ResponseWriter, r *http.Request) {
+func (app *application) postBlogCreate(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	w.Write([]byte("Save a new blog post..."))
 }

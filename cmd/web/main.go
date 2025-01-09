@@ -1,21 +1,60 @@
 package main
 
 import (
-	"log"
+	"database/sql"
+	"flag"
+	"log/slog"
 	"net/http"
+	"os"
+
+	_ "github.com/go-sql-driver/mysql"
+	"jpp.blog/internal/models"
 )
 
+type application struct {
+	logger *slog.Logger
+	texts  *models.TextModel
+}
+
 func main() {
-	mux := http.NewServeMux()
-	fileServer := http.FileServer(http.Dir("./ui/static/"))
-	mux.Handle("GET /static/", http.StripPrefix("/static", fileServer))
-	mux.HandleFunc("GET /{$}", getHome)
-	mux.HandleFunc("GET /blog/view/{id}/{$}", getBlogView)
-	mux.HandleFunc("GET /blog/create", getBlogCreate)
-	mux.HandleFunc("POST /blog/create", postBlogCreate)
+	addr := flag.String("addr", ":4000", "HTTP network address")
+	dsn := flag.String("dsn", "web:MushokuTensei223@/scriptorium?parseTime=true", "MYSQL data source name")
+	flag.Parse()
 
-	log.Print("starting server on :4000")
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		AddSource: true,
+	}))
 
-	err := http.ListenAndServe(":4000", mux)
-	log.Fatal(err)
+	db, err := openDB(*dsn)
+	if err != nil {
+		logger.Error(err.Error())
+		os.Exit(1)
+	}
+
+	defer db.Close()
+
+	app := &application{
+		logger: logger,
+		texts:  &models.TextModel{DB: db},
+	}
+
+	logger.Info("starting server on ", "addr", *addr)
+
+	err = http.ListenAndServe(*addr, app.routes())
+	logger.Error(err.Error())
+	os.Exit(1)
+}
+
+func openDB(dsn string) (*sql.DB, error) {
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		return nil, err
+	}
+	err = db.Ping()
+	if err != nil {
+		db.Close()
+		return nil, err
+	}
+
+	return db, nil
 }
