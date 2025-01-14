@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -18,28 +17,7 @@ func (app *application) getHome(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	for _, text := range texts {
-		fmt.Fprintf(w, "%+v\n", text)
-	}
-
-	/*
-		files := []string{
-			"./ui/html/base.tmpl.html",
-			"./ui/html/partials/nav.tmpl.html",
-			"./ui/html/pages/home.tmpl.html",
-		}
-
-		ts, err := template.ParseFiles(files...)
-		if err != nil {
-			app.serverError(w, r, err)
-			return
-		}
-
-		err = ts.ExecuteTemplate(w, "base", nil)
-		if err != nil {
-			app.serverError(w, r, err)
-		}
-	*/
+	app.render(w, r, http.StatusOK, "home.tmpl.html", templateData{Texts: texts})
 }
 
 func (app *application) getBlogView(w http.ResponseWriter, r *http.Request) {
@@ -59,7 +37,7 @@ func (app *application) getBlogView(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Fprintf(w, "%+v", text)
+	app.render(w, r, http.StatusOK, "view.tmpl.html", templateData{Text: text})
 }
 
 func (app *application) getBlogCreate(w http.ResponseWriter, r *http.Request) {
