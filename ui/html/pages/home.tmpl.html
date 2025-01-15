@@ -1,7 +1,7 @@
 {{define "title"}}Home{{end}}
 
 {{define "main"}}
-    <h2>Latest Maringalia</h2>
+    <h2>Latest Marginalia</h2>
     {{if .Texts}}
         <table>
             <tr>
@@ -12,7 +12,7 @@
             {{range .Texts}}
                 <tr>
                     <td><a href='/text/view/{{.ID}}'>{{.Title}}</a></td>
-                    <td>{{.Created}}</td>
+                    <td>{{.Created | colloquialDate}}</td>
                     <td>#{{.ID}}</td>
                 </tr>
             {{end}}

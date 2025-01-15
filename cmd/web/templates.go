@@ -3,6 +3,7 @@ package main
 import (
 	"html/template"
 	"path/filepath"
+	"time"
 
 	"jpp.blog/internal/models"
 )
@@ -11,6 +12,14 @@ type templateData struct {
 	CurrentYear int
 	Text        models.Text
 	Texts       []models.Text
+}
+
+func colloquialDate(t time.Time) string {
+	return t.Format("02 Jan 2006 at 15:04")
+}
+
+var functions = template.FuncMap{
+	"colloquialDate": colloquialDate,
 }
 
 func newTemplateCache() (map[string]*template.Template, error) {
@@ -24,7 +33,7 @@ func newTemplateCache() (map[string]*template.Template, error) {
 	for _, page := range pages {
 		name := filepath.Base(page)
 
-		ts, err := template.ParseFiles("./ui/html/base.tmpl.html")
+		ts, err := template.New(name).Funcs(functions).ParseFiles("./ui/html/base.tmpl.html")
 		if err != nil {
 			return nil, err
 		}
